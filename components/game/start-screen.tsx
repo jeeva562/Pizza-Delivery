@@ -48,49 +48,49 @@ export function StartScreen({ onStart }: StartScreenProps) {
       {/* Main content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         {/* Logo/Title */}
-        <div className="mb-4 sm:mb-8">
-          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-2 sm:mb-4">
-            <Rocket className="w-6 h-6 sm:w-12 sm:h-12 text-primary animate-float" />
-            <Pizza className="w-8 h-8 sm:w-16 sm:h-16 text-primary animate-pulse-glow rounded-full" />
-            <Star className="w-6 h-6 sm:w-12 sm:h-12 text-accent animate-float-reverse" />
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+            <Rocket className="w-8 h-8 sm:w-12 sm:h-12 text-primary animate-float" />
+            <Pizza className="w-10 h-10 sm:w-16 sm:h-16 text-primary animate-pulse-glow rounded-full" />
+            <Star className="w-8 h-8 sm:w-12 sm:h-12 text-accent animate-float-reverse" />
           </div>
 
-          <h1 className="font-display text-2xl sm:text-5xl md:text-7xl font-black mb-1 sm:mb-4">
+          <h1 className="font-display text-3xl sm:text-5xl md:text-7xl font-black mb-2 sm:mb-4">
             <span className="text-gradient-fire">INTERGALACTIC</span>
           </h1>
-          <h2 className="font-display text-xl sm:text-4xl md:text-6xl font-bold text-gradient-cosmic mb-3 sm:mb-6">
+          <h2 className="font-display text-2xl sm:text-4xl md:text-6xl font-bold text-gradient-cosmic mb-4 sm:mb-6">
             PIZZA DELIVERY
           </h2>
 
-          <p className="text-xs sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
+          <p className="text-sm sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
             Navigate through asteroid fields and deliver the hottest pizza across the galaxy!
           </p>
         </div>
 
         {/* Play Button */}
-        <div className="mb-4 sm:mb-8">
+        <div className="mb-6 sm:mb-8">
           <button
             onClick={onStart}
-            className="group relative px-6 sm:px-12 py-3 sm:py-6 bg-gradient-to-r from-primary via-orange-500 to-primary text-primary-foreground font-display font-bold text-base sm:text-2xl rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-110 active:scale-95 animate-pulse-glow"
+            className="group relative px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-primary via-orange-500 to-primary text-primary-foreground font-display font-bold text-lg sm:text-2xl rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-110 active:scale-95 animate-pulse-glow"
           >
             <span className="flex items-center gap-2 sm:gap-3">
-              <Gamepad2 className="w-5 h-5 sm:w-8 sm:h-8" />
+              <Gamepad2 className="w-6 h-6 sm:w-8 sm:h-8" />
               START MISSION
-              <ChevronRight className="w-5 h-5 sm:w-8 sm:h-8 group-hover:translate-x-2 transition-transform" />
+              <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8 group-hover:translate-x-2 transition-transform" />
             </span>
           </button>
 
           {!isTouchDevice && (
-            <p className="mt-2 sm:mt-4 text-[10px] sm:text-sm text-muted-foreground">
+            <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground">
               Press{" "}
-              <kbd className="px-1 sm:px-2 py-0.5 bg-muted rounded text-foreground font-mono text-[10px] sm:text-xs">
+              <kbd className="px-2 sm:px-2 py-1 bg-muted rounded text-foreground font-mono text-xs sm:text-xs">
                 SPACE
               </kbd>{" "}
               to start
             </p>
           )}
           {isTouchDevice && (
-            <p className="mt-2 sm:mt-4 text-[10px] sm:text-sm text-muted-foreground">
+            <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground">
               Rotate device to landscape for best experience
             </p>
           )}
