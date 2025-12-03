@@ -699,7 +699,7 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
       drawPlayer(player)
 
       // Distance progress
-      distanceRef.current += 0.5 + (boosting ? 0.5 : 0)
+      distanceRef.current += 1.5 + (boosting ? 1.5 : 0)
       setDistance(distanceRef.current)
 
       // Level completion
