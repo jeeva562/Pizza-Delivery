@@ -52,7 +52,7 @@ interface BackgroundStar {
 const LEVELS = [
   {
     name: "Earth Orbit",
-    distance: 2000,
+    distance: 20000,
     asteroidRate: 0.012,
     starRate: 0.03,
     asteroidSpeed: 2,
@@ -61,7 +61,7 @@ const LEVELS = [
   },
   {
     name: "Asteroid Belt",
-    distance: 2500,
+    distance: 25000,
     asteroidRate: 0.025,
     starRate: 0.025,
     asteroidSpeed: 2.5,
@@ -70,7 +70,7 @@ const LEVELS = [
   },
   {
     name: "Mars Approach",
-    distance: 2500,
+    distance: 25000,
     asteroidRate: 0.03,
     starRate: 0.028,
     asteroidSpeed: 3,
@@ -79,7 +79,7 @@ const LEVELS = [
   },
   {
     name: "Jupiter Gravity",
-    distance: 3000,
+    distance: 30000,
     asteroidRate: 0.035,
     starRate: 0.025,
     asteroidSpeed: 3.5,
@@ -88,7 +88,7 @@ const LEVELS = [
   },
   {
     name: "Saturn Rings",
-    distance: 3000,
+    distance: 30000,
     asteroidRate: 0.04,
     starRate: 0.022,
     asteroidSpeed: 4,
@@ -97,7 +97,7 @@ const LEVELS = [
   },
   {
     name: "Uranus Ice Field",
-    distance: 3500,
+    distance: 35000,
     asteroidRate: 0.045,
     starRate: 0.02,
     asteroidSpeed: 4.5,
@@ -106,7 +106,7 @@ const LEVELS = [
   },
   {
     name: "Neptune Storm",
-    distance: 3500,
+    distance: 35000,
     asteroidRate: 0.05,
     starRate: 0.018,
     asteroidSpeed: 5,
@@ -115,7 +115,7 @@ const LEVELS = [
   },
   {
     name: "Kuiper Belt",
-    distance: 4000,
+    distance: 40000,
     asteroidRate: 0.055,
     starRate: 0.015,
     asteroidSpeed: 5.5,
@@ -124,7 +124,7 @@ const LEVELS = [
   },
   {
     name: "Deep Space",
-    distance: 4000,
+    distance: 40000,
     asteroidRate: 0.06,
     starRate: 0.012,
     asteroidSpeed: 6,
@@ -133,7 +133,7 @@ const LEVELS = [
   },
   {
     name: "Space Station",
-    distance: 3000,
+    distance: 30000,
     asteroidRate: 0.03,
     starRate: 0.04,
     asteroidSpeed: 4,
@@ -699,7 +699,7 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
       drawPlayer(player)
 
       // Distance progress
-      distanceRef.current += 2.5 + (boosting ? 2.5 : 0)
+      distanceRef.current += 0.5 + (boosting ? 0.5 : 0)
       setDistance(distanceRef.current)
 
       // Level completion
