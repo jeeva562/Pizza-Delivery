@@ -34,7 +34,7 @@ export function MobileControls({ onControl }: MobileControlsProps) {
 
   const updateDirections = useCallback(
     (x: number, y: number) => {
-      const threshold = 0.3
+      const threshold = 0.2 // Reduced from 0.3 for more responsive controls
       const newDirections = new Set<string>()
 
       if (y < -threshold) newDirections.add("up")
@@ -132,13 +132,15 @@ export function MobileControls({ onControl }: MobileControlsProps) {
       {/* Virtual Joystick - bottom left */}
       <div
         ref={joystickRef}
-        className="pointer-events-auto absolute bottom-6 left-6 w-28 h-28 sm:w-32 sm:h-32 rounded-full glass border-2 border-primary/30"
+        className={`pointer-events-auto absolute bottom-8 left-8 w-36 h-36 sm:w-40 sm:h-40 rounded-full glass-mobile border-2 transition-all ${isJoystickActive ? "border-primary/60 shadow-lg shadow-primary/30" : "border-primary/30"
+          }`}
         onTouchStart={handleJoystickStart}
         onTouchMove={handleJoystickMove}
         onTouchEnd={handleJoystickEnd}
       >
         <div
-          className="absolute w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-primary to-orange-600 shadow-lg transition-transform duration-75"
+          className={`absolute w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-primary to-orange-600 shadow-lg transition-all duration-75 ${isJoystickActive ? "scale-110 shadow-2xl shadow-primary/50" : ""
+            }`}
           style={{
             left: "50%",
             top: "50%",
@@ -146,23 +148,23 @@ export function MobileControls({ onControl }: MobileControlsProps) {
           }}
         />
         {/* Direction indicators */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-40 pointer-events-none">
-          <div className="absolute top-2 text-foreground text-[10px] font-display">▲</div>
-          <div className="absolute bottom-2 text-foreground text-[10px] font-display">▼</div>
-          <div className="absolute left-2 text-foreground text-[10px] font-display">◀</div>
-          <div className="absolute right-2 text-foreground text-[10px] font-display">▶</div>
+        <div className="absolute inset-0 flex items-center justify-center opacity-50 pointer-events-none">
+          <div className="absolute top-3 text-foreground text-xs font-display">▲</div>
+          <div className="absolute bottom-3 text-foreground text-xs font-display">▼</div>
+          <div className="absolute left-3 text-foreground text-xs font-display">◀</div>
+          <div className="absolute right-3 text-foreground text-xs font-display">▶</div>
         </div>
       </div>
 
       {/* Boost button - bottom right */}
       <button
-        className="pointer-events-auto absolute bottom-6 right-6 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center shadow-lg shadow-primary/40 active:scale-90 transition-transform border-4 border-primary/50"
+        className="pointer-events-auto absolute bottom-8 right-8 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center shadow-lg shadow-primary/40 active:scale-90 transition-all border-4 border-primary/50"
         onTouchStart={handleBoostStart}
         onTouchEnd={handleBoostEnd}
       >
         <div className="text-center">
-          <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-primary-foreground mx-auto" />
-          <span className="text-[9px] sm:text-[10px] font-display text-primary-foreground/80 uppercase">Boost</span>
+          <Zap className="w-10 h-10 sm:w-12 sm:h-12 text-primary-foreground mx-auto" />
+          <span className="text-xs sm:text-sm font-display text-primary-foreground/90 uppercase font-bold">Boost</span>
         </div>
       </button>
     </div>

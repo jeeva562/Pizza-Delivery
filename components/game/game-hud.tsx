@@ -36,13 +36,13 @@ export function GameHUD({
         <div className="flex items-start justify-between p-2 gap-2">
           {/* Left: Score & Lives combined */}
           <div className="glass-mobile rounded-lg px-2 py-1 flex items-center gap-2">
-            <Star className="w-3.5 h-3.5 text-primary" />
-            <span className="font-display text-xs font-bold text-primary">{score.toLocaleString()}</span>
+            <Star className="w-4 h-4 text-primary" />
+            <span className="font-display text-sm font-bold text-primary">{score.toLocaleString()}</span>
             <div className="flex gap-0.5 ml-1">
-              {Array.from({ length: 3 }).map((_, i) => (
+              {Array.from({ length: 5 }).map((_, i) => (
                 <Heart
                   key={i}
-                  className={`w-3 h-3 transition-all ${i < lives ? "text-red-500 fill-red-500" : "text-muted-foreground/20"
+                  className={`w-3.5 h-3.5 transition-all ${i < lives ? "text-red-500 fill-red-500" : "text-muted-foreground/20"
                     }`}
                 />
               ))}
@@ -51,8 +51,8 @@ export function GameHUD({
 
           {/* Right: Fuel */}
           <div className="glass-mobile rounded-lg px-2 py-1 flex items-center gap-1.5">
-            <Zap className={`w-3.5 h-3.5 ${fuel > 30 ? "text-primary" : "text-orange-500"}`} />
-            <span className="text-[10px] text-muted-foreground font-mono font-semibold">{Math.round(fuel)}%</span>
+            <Zap className={`w-4 h-4 ${fuel > 30 ? "text-primary" : fuel > 15 ? "text-orange-500 animate-pulse" : "text-red-500 animate-pulse"}`} />
+            <span className="text-xs text-muted-foreground font-mono font-semibold">{Math.round(fuel)}%</span>
           </div>
         </div>
 
@@ -60,10 +60,10 @@ export function GameHUD({
         <div className="absolute top-12 left-0 right-0 px-3">
           <div className="glass-mobile rounded-full px-3 py-1.5">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[9px] font-display font-semibold" style={{ color: levelColor }}>
+              <span className="text-[10px] font-display font-semibold" style={{ color: levelColor }}>
                 {level + 1}/{totalLevels} - {levelName}
               </span>
-              <span className="text-[9px] text-muted-foreground">{Math.round(progress)}%</span>
+              <span className="text-[10px] text-muted-foreground">{Math.round(progress)}%</span>
             </div>
             <div className="h-1 bg-muted/30 rounded-full overflow-hidden">
               <div

@@ -63,7 +63,10 @@ export function StartScreen({ onStart }: StartScreenProps) {
           </h2>
 
           <p className="text-sm sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-            Navigate through asteroid fields and deliver the hottest pizza across the galaxy!
+            Navigate through asteroid fields, collect stars for points, and deliver pizza across <span className="text-primary font-bold">10 challenging levels</span>!
+          </p>
+          <p className="text-xs sm:text-sm text-muted-foreground/80 max-w-xl mx-auto px-4 mt-2">
+            <span className="text-accent">★</span> Manage your fuel wisely • Chain star combos for bonus points • Avoid asteroids to keep your lives
           </p>
         </div>
 

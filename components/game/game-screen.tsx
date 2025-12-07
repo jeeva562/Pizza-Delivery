@@ -52,19 +52,19 @@ interface BackgroundStar {
 const LEVELS = [
   {
     name: "Earth Orbit",
-    distance: 20000,
-    asteroidRate: 0.012,
-    starRate: 0.03,
-    asteroidSpeed: 2,
+    distance: 15000, // Reduced from 20000 for gentler start
+    asteroidRate: 0.008, // Reduced from 0.012 for fewer early obstacles
+    starRate: 0.035, // Increased for more rewards
+    asteroidSpeed: 1.8, // Slightly slower
     color: "#00d9ff",
     bgColor: "#0a1628",
   },
   {
     name: "Asteroid Belt",
-    distance: 25000,
-    asteroidRate: 0.025,
-    starRate: 0.025,
-    asteroidSpeed: 2.5,
+    distance: 22000, // Slightly shorter
+    asteroidRate: 0.018, // Gentler ramp
+    starRate: 0.028,
+    asteroidSpeed: 2.2, // Slower progression
     color: "#ff6b35",
     bgColor: "#1a0f0a",
   },
@@ -142,10 +142,12 @@ const LEVELS = [
   },
 ]
 
-const ACCELERATION = 0.6
-const FRICTION = 0.94
+// Physics constants - tuned for responsive, fun gameplay
+const ACCELERATION = 0.8 // Increased from 0.6 for snappier response
+const FRICTION = 0.88 // Reduced from 0.94 to reduce "ice skating" feel
 const MAX_SPEED = 10
-const BOOST_MULTIPLIER = 1.5
+const BOOST_MULTIPLIER = 2.0 // Increased from 1.5 for more impactful boost
+const BOOST_ACCELERATION = 1.2 // Extra acceleration when boosting
 
 export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -156,7 +158,7 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
   const backgroundInitializedRef = useRef(false)
 
   const [score, setScore] = useState(0)
-  const [lives, setLives] = useState(3)
+  const [lives, setLives] = useState(5) // Increased from 3 for more forgiving gameplay
   const [fuel, setFuel] = useState(100)
   const [distance, setDistance] = useState(0)
   const [level, setLevel] = useState(0)
@@ -164,6 +166,7 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
   const [showLevelTransition, setShowLevelTransition] = useState(false)
   const [combo, setCombo] = useState(0)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const [screenShake, setScreenShake] = useState(0) // Screen shake intensity
 
   const playerRef = useRef<Player>({
     x: 100,
@@ -181,7 +184,7 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
   const starsRef = useRef<Star[]>([])
   const backgroundStarsRef = useRef<BackgroundStar[]>([])
   const scoreRef = useRef(0)
-  const livesRef = useRef(3)
+  const livesRef = useRef(5) // Increased from 3 for more forgiving gameplay
   const fuelRef = useRef(100)
   const distanceRef = useRef(0)
   const levelRef = useRef(0)
@@ -580,8 +583,9 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
       if (keysRef.current.has("ArrowRight") || keysRef.current.has("KeyD")) ax += ACCELERATION
 
       const speedMultiplier = boosting ? BOOST_MULTIPLIER : 1
-      player.vx += ax * speedMultiplier
-      player.vy += ay * speedMultiplier
+      const accelMultiplier = boosting ? BOOST_ACCELERATION : 1
+      player.vx += ax * speedMultiplier * accelMultiplier
+      player.vy += ay * speedMultiplier * accelMultiplier
 
       player.vx *= FRICTION
       player.vy *= FRICTION
@@ -661,6 +665,7 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
           player.invincibleTimer = 120
           comboRef.current = 0
           setCombo(0)
+          setScreenShake(8) // Trigger screen shake on collision
 
           if (livesRef.current <= 0) {
             cancelAnimationFrame(gameLoopRef.current)
