@@ -1,12 +1,21 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { GameScreen } from "@/components/game/game-screen"
+import dynamic from "next/dynamic"
 import { StartScreen } from "@/components/game/start-screen"
 import { ParallaxBackground } from "@/components/game/parallax-background"
-import { BossFight } from "@/components/game/boss-fight"
-import { GalaxyMap } from "@/components/game/galaxy-map"
 import { Rocket, Pizza, RotateCcw, Home, Trophy, Star } from "lucide-react"
+
+// Lazy load heavy game components to reduce initial bundle
+const GameScreen = dynamic(() => import("@/components/game/game-screen").then(mod => ({ default: mod.GameScreen })), {
+  loading: () => <div className="fixed inset-0 flex items-center justify-center bg-background"><div className="text-primary animate-pulse">Loading...</div></div>
+})
+const BossFight = dynamic(() => import("@/components/game/boss-fight").then(mod => ({ default: mod.BossFight })), {
+  loading: () => <div className="fixed inset-0 flex items-center justify-center bg-background"><div className="text-primary animate-pulse">Loading Boss...</div></div>
+})
+const GalaxyMap = dynamic(() => import("@/components/game/galaxy-map").then(mod => ({ default: mod.GalaxyMap })), {
+  loading: () => <div className="fixed inset-0 flex items-center justify-center bg-background"><div className="text-primary animate-pulse">Loading Map...</div></div>
+})
 
 export type GameState =
   | "start"
