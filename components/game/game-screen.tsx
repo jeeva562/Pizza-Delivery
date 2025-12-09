@@ -8,6 +8,8 @@ import { LevelTransition } from "./level-transition"
 interface GameScreenProps {
   onGameOver: (score: number) => void
   onVictory: (score: number) => void
+  onBossFight: (level: number, score: number) => void
+  currentLevel?: number
 }
 
 interface Player {
@@ -22,6 +24,16 @@ interface Player {
   invincibleTimer: number
 }
 
+interface Projectile {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  radius: number
+  damage: number
+  color: string
+}
+
 interface Asteroid {
   x: number
   y: number
@@ -30,15 +42,17 @@ interface Asteroid {
   rotation: number
   rotationSpeed: number
   vertices: number[]
+  health: number
+  maxHealth: number
 }
 
-interface Star {
+interface Explosion {
   x: number
   y: number
   radius: number
-  speed: number
-  pulse: number
-  pulseSpeed: number
+  maxRadius: number
+  alpha: number
+  particles: { x: number; y: number; vx: number; vy: number; size: number; alpha: number }[]
 }
 
 interface BackgroundStar {
@@ -52,121 +66,126 @@ interface BackgroundStar {
 const LEVELS = [
   {
     name: "Earth Orbit",
-    distance: 15000, // Reduced from 20000 for gentler start
-    asteroidRate: 0.008, // Reduced from 0.012 for fewer early obstacles
-    starRate: 0.035, // Increased for more rewards
-    asteroidSpeed: 1.8, // Slightly slower
+    distance: 12000,
+    asteroidRate: 0.015,
+    asteroidSpeed: 2.0,
     color: "#00d9ff",
     bgColor: "#0a1628",
+    bossName: "Void Crawler",
   },
   {
     name: "Asteroid Belt",
-    distance: 22000, // Slightly shorter
-    asteroidRate: 0.018, // Gentler ramp
-    starRate: 0.028,
-    asteroidSpeed: 2.2, // Slower progression
+    distance: 15000,
+    asteroidRate: 0.022,
+    asteroidSpeed: 2.5,
     color: "#ff6b35",
     bgColor: "#1a0f0a",
+    bossName: "Rock Titan",
   },
   {
     name: "Mars Approach",
-    distance: 25000,
-    asteroidRate: 0.03,
-    starRate: 0.028,
-    asteroidSpeed: 3,
+    distance: 18000,
+    asteroidRate: 0.028,
+    asteroidSpeed: 2.8,
     color: "#ff4444",
     bgColor: "#1a0a0a",
+    bossName: "Crimson Warlord",
   },
   {
     name: "Jupiter Gravity",
-    distance: 30000,
-    asteroidRate: 0.035,
-    starRate: 0.025,
-    asteroidSpeed: 3.5,
+    distance: 20000,
+    asteroidRate: 0.032,
+    asteroidSpeed: 3.2,
     color: "#ffa500",
     bgColor: "#1a140a",
+    bossName: "Storm King",
   },
   {
     name: "Saturn Rings",
-    distance: 30000,
-    asteroidRate: 0.04,
-    starRate: 0.022,
-    asteroidSpeed: 4,
+    distance: 22000,
+    asteroidRate: 0.035,
+    asteroidSpeed: 3.5,
     color: "#ffd700",
     bgColor: "#1a1a0a",
+    bossName: "Ring Serpent",
   },
   {
     name: "Uranus Ice Field",
-    distance: 35000,
-    asteroidRate: 0.045,
-    starRate: 0.02,
-    asteroidSpeed: 4.5,
+    distance: 24000,
+    asteroidRate: 0.038,
+    asteroidSpeed: 3.8,
     color: "#00ffcc",
     bgColor: "#0a1a1a",
+    bossName: "Frost Phantom",
   },
   {
     name: "Neptune Storm",
-    distance: 35000,
-    asteroidRate: 0.05,
-    starRate: 0.018,
-    asteroidSpeed: 5,
+    distance: 26000,
+    asteroidRate: 0.04,
+    asteroidSpeed: 4.0,
     color: "#4466ff",
     bgColor: "#0a0a1a",
+    bossName: "Abyss Leviathan",
   },
   {
     name: "Kuiper Belt",
-    distance: 40000,
-    asteroidRate: 0.055,
-    starRate: 0.015,
-    asteroidSpeed: 5.5,
+    distance: 28000,
+    asteroidRate: 0.042,
+    asteroidSpeed: 4.2,
     color: "#aa88ff",
     bgColor: "#140a1a",
+    bossName: "Swarm Queen",
   },
   {
     name: "Deep Space",
-    distance: 40000,
-    asteroidRate: 0.06,
-    starRate: 0.012,
-    asteroidSpeed: 6,
+    distance: 30000,
+    asteroidRate: 0.045,
+    asteroidSpeed: 4.5,
     color: "#ff66aa",
     bgColor: "#1a0a14",
+    bossName: "Dark Matter Entity",
   },
   {
     name: "Space Station",
-    distance: 30000,
-    asteroidRate: 0.03,
-    starRate: 0.04,
-    asteroidSpeed: 4,
+    distance: 25000,
+    asteroidRate: 0.035,
+    asteroidSpeed: 4.0,
     color: "#00ff88",
     bgColor: "#0a1a14",
+    bossName: "Final Overlord",
   },
 ]
 
-// Physics constants - tuned for responsive, fun gameplay
-const ACCELERATION = 0.8 // Increased from 0.6 for snappier response
-const FRICTION = 0.88 // Reduced from 0.94 to reduce "ice skating" feel
+// Physics constants
+const ACCELERATION = 0.8
+const FRICTION = 0.88
 const MAX_SPEED = 10
-const BOOST_MULTIPLIER = 2.0 // Increased from 1.5 for more impactful boost
-const BOOST_ACCELERATION = 1.2 // Extra acceleration when boosting
+const BOOST_MULTIPLIER = 2.0
+const BOOST_ACCELERATION = 1.2
 
-export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
+// Shooting constants
+const PROJECTILE_SPEED = 14
+const FIRE_RATE = 120 // ms between shots
+const PROJECTILE_DAMAGE = 15
+
+export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 0 }: GameScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const gameLoopRef = useRef<number>(0)
   const keysRef = useRef<Set<string>>(new Set())
   const canvasSizeRef = useRef({ width: 800, height: 600 })
   const backgroundInitializedRef = useRef(false)
+  const lastFireTimeRef = useRef(0)
 
   const [score, setScore] = useState(0)
-  const [lives, setLives] = useState(5) // Increased from 3 for more forgiving gameplay
+  const [lives, setLives] = useState(5)
   const [fuel, setFuel] = useState(100)
   const [distance, setDistance] = useState(0)
-  const [level, setLevel] = useState(0)
+  const [level, setLevel] = useState(currentLevel)
   const [isPaused, setIsPaused] = useState(false)
   const [showLevelTransition, setShowLevelTransition] = useState(false)
-  const [combo, setCombo] = useState(0)
+  const [kills, setKills] = useState(0)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
-  const [screenShake, setScreenShake] = useState(0) // Screen shake intensity
 
   const playerRef = useRef<Player>({
     x: 100,
@@ -181,16 +200,21 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
   })
 
   const asteroidsRef = useRef<Asteroid[]>([])
-  const starsRef = useRef<Star[]>([])
+  const projectilesRef = useRef<Projectile[]>([])
+  const explosionsRef = useRef<Explosion[]>([])
   const backgroundStarsRef = useRef<BackgroundStar[]>([])
   const scoreRef = useRef(0)
-  const livesRef = useRef(5) // Increased from 3 for more forgiving gameplay
+  const livesRef = useRef(5)
   const fuelRef = useRef(100)
   const distanceRef = useRef(0)
-  const levelRef = useRef(0)
-  const comboRef = useRef(0)
-  const comboTimerRef = useRef(0)
+  const levelRef = useRef(currentLevel)
+  const killsRef = useRef(0)
   const frameCount = useRef(0)
+
+  useEffect(() => {
+    levelRef.current = currentLevel
+    setLevel(currentLevel)
+  }, [currentLevel])
 
   useEffect(() => {
     const checkTouch = () => {
@@ -202,27 +226,27 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
   const initializeBackground = useCallback((width: number, height: number) => {
     if (backgroundInitializedRef.current && backgroundStarsRef.current.length > 0) return
     backgroundStarsRef.current = []
-    const starCount = Math.floor((width * height) / 3000)
+    const starCount = Math.floor((width * height) / 2500)
     for (let i = 0; i < starCount; i++) {
       backgroundStarsRef.current.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        size: Math.random() * 2 + 0.5,
-        speed: Math.random() * 1.5 + 0.5,
-        alpha: Math.random() * 0.5 + 0.3,
+        size: Math.random() * 2.5 + 0.5,
+        speed: Math.random() * 2 + 0.5,
+        alpha: Math.random() * 0.6 + 0.3,
       })
     }
     backgroundInitializedRef.current = true
   }, [])
 
-  // Fixed handleMobileControl to properly map directions
   const handleMobileControl = useCallback((direction: string, active: boolean) => {
     const keyMap: Record<string, string> = {
       up: "ArrowUp",
       down: "ArrowDown",
       left: "ArrowLeft",
       right: "ArrowRight",
-      boost: "Space",
+      boost: "ShiftLeft",
+      shoot: "Space",
     }
     const key = keyMap[direction]
     if (key) {
@@ -399,6 +423,41 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
       ctx.restore()
     }
 
+    const drawProjectile = (projectile: Projectile) => {
+      ctx.save()
+      ctx.translate(projectile.x, projectile.y)
+
+      // Glow effect
+      const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, projectile.radius * 3)
+      glowGradient.addColorStop(0, projectile.color)
+      glowGradient.addColorStop(0.5, projectile.color + "88")
+      glowGradient.addColorStop(1, "transparent")
+      ctx.fillStyle = glowGradient
+      ctx.beginPath()
+      ctx.arc(0, 0, projectile.radius * 3, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Core
+      ctx.beginPath()
+      ctx.arc(0, 0, projectile.radius, 0, Math.PI * 2)
+      ctx.fillStyle = "#ffffff"
+      ctx.fill()
+
+      // Trail
+      ctx.beginPath()
+      ctx.moveTo(0, -projectile.radius * 0.5)
+      ctx.lineTo(-projectile.radius * 4, 0)
+      ctx.lineTo(0, projectile.radius * 0.5)
+      ctx.closePath()
+      const trailGradient = ctx.createLinearGradient(0, 0, -projectile.radius * 4, 0)
+      trailGradient.addColorStop(0, projectile.color)
+      trailGradient.addColorStop(1, "transparent")
+      ctx.fillStyle = trailGradient
+      ctx.fill()
+
+      ctx.restore()
+    }
+
     const drawAsteroid = (asteroid: Asteroid) => {
       ctx.save()
       ctx.translate(asteroid.x, asteroid.y)
@@ -425,6 +484,20 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
       ctx.lineWidth = 2
       ctx.stroke()
 
+      // Health indicator for damaged asteroids
+      if (asteroid.health < asteroid.maxHealth) {
+        const healthPercent = asteroid.health / asteroid.maxHealth
+        ctx.beginPath()
+        ctx.arc(0, -asteroid.radius - 8, 6, 0, Math.PI * 2)
+        ctx.fillStyle = "rgba(0,0,0,0.5)"
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(0, -asteroid.radius - 8, 5, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * healthPercent))
+        ctx.strokeStyle = healthPercent > 0.5 ? "#00ff00" : healthPercent > 0.25 ? "#ffaa00" : "#ff0000"
+        ctx.lineWidth = 2
+        ctx.stroke()
+      }
+
       // Craters
       for (let i = 0; i < 3; i++) {
         const craterX = (Math.random() - 0.5) * asteroid.radius
@@ -439,41 +512,28 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
       ctx.restore()
     }
 
-    const drawStar = (star: Star) => {
+    const drawExplosion = (explosion: Explosion) => {
       ctx.save()
-      ctx.translate(star.x, star.y)
+      ctx.translate(explosion.x, explosion.y)
 
-      const pulse = 1 + Math.sin(star.pulse) * 0.2
-      const r = star.radius * pulse
-
-      const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 2)
-      gradient.addColorStop(0, "#ffffff")
-      gradient.addColorStop(0.3, "#ffdd00")
-      gradient.addColorStop(0.6, "#ffaa00")
+      // Main explosion circle
+      const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, explosion.radius)
+      gradient.addColorStop(0, `rgba(255, 200, 50, ${explosion.alpha})`)
+      gradient.addColorStop(0.3, `rgba(255, 100, 0, ${explosion.alpha * 0.8})`)
+      gradient.addColorStop(0.7, `rgba(255, 50, 0, ${explosion.alpha * 0.5})`)
       gradient.addColorStop(1, "transparent")
       ctx.fillStyle = gradient
       ctx.beginPath()
-      ctx.arc(0, 0, r * 2, 0, Math.PI * 2)
+      ctx.arc(0, 0, explosion.radius, 0, Math.PI * 2)
       ctx.fill()
 
-      ctx.beginPath()
-      for (let i = 0; i < 5; i++) {
-        const angle = (i * Math.PI * 2) / 5 - Math.PI / 2
-        const outerX = Math.cos(angle) * r
-        const outerY = Math.sin(angle) * r
-        const innerAngle = angle + Math.PI / 5
-        const innerX = Math.cos(innerAngle) * (r * 0.4)
-        const innerY = Math.sin(innerAngle) * (r * 0.4)
-        if (i === 0) ctx.moveTo(outerX, outerY)
-        else ctx.lineTo(outerX, outerY)
-        ctx.lineTo(innerX, innerY)
-      }
-      ctx.closePath()
-      ctx.fillStyle = "#ffdd00"
-      ctx.fill()
-      ctx.strokeStyle = "#ffaa00"
-      ctx.lineWidth = 1
-      ctx.stroke()
+      // Particles
+      explosion.particles.forEach(p => {
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255, ${150 + Math.random() * 100}, 0, ${p.alpha})`
+        ctx.fill()
+      })
 
       ctx.restore()
     }
@@ -500,7 +560,24 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
       const displayWidth = canvasSizeRef.current.width
       const displayHeight = canvasSizeRef.current.height
       const currentLevel = LEVELS[levelRef.current]
-      const radius = 20 + Math.random() * 30 + levelRef.current * 2
+      const sizeType = Math.random()
+      let radius: number
+      let health: number
+
+      if (sizeType < 0.4) {
+        // Small asteroid
+        radius = 15 + Math.random() * 10
+        health = 15
+      } else if (sizeType < 0.75) {
+        // Medium asteroid
+        radius = 25 + Math.random() * 15
+        health = 30
+      } else {
+        // Large asteroid
+        radius = 40 + Math.random() * 20 + levelRef.current * 2
+        health = 45 + levelRef.current * 5
+      }
+
       const vertices: number[] = []
       const vertexCount = 8 + Math.floor(Math.random() * 4)
       for (let i = 0; i < vertexCount; i++) {
@@ -514,23 +591,57 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
         rotation: 0,
         rotationSpeed: (Math.random() - 0.5) * 0.05,
         vertices,
+        health,
+        maxHealth: health,
       }
     }
 
-    const createStar = () => {
-      const displayWidth = canvasSizeRef.current.width
-      const displayHeight = canvasSizeRef.current.height
+    const createProjectile = (player: Player): Projectile => {
+      const currentLevel = LEVELS[levelRef.current]
       return {
-        x: displayWidth + 20,
-        y: Math.random() * (displayHeight - 40) + 20,
-        radius: 12 + Math.random() * 6,
-        speed: 3 + Math.random() * 2,
-        pulse: Math.random() * Math.PI * 2,
-        pulseSpeed: 0.1 + Math.random() * 0.1,
+        x: player.x + player.width,
+        y: player.y + player.height / 2,
+        vx: PROJECTILE_SPEED,
+        vy: player.vy * 0.2,
+        radius: 5,
+        damage: PROJECTILE_DAMAGE,
+        color: currentLevel.color,
       }
     }
 
-    const checkCollision = (player: Player, asteroid: Asteroid) => {
+    const createExplosion = (x: number, y: number, size: number): Explosion => {
+      const particles = []
+      const particleCount = Math.floor(10 + size / 5)
+      for (let i = 0; i < particleCount; i++) {
+        const angle = Math.random() * Math.PI * 2
+        const speed = 2 + Math.random() * 4
+        particles.push({
+          x: 0,
+          y: 0,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: 2 + Math.random() * 3,
+          alpha: 1,
+        })
+      }
+      return {
+        x,
+        y,
+        radius: 5,
+        maxRadius: size * 2,
+        alpha: 1,
+        particles,
+      }
+    }
+
+    const checkProjectileAsteroidCollision = (projectile: Projectile, asteroid: Asteroid): boolean => {
+      const dx = projectile.x - asteroid.x
+      const dy = projectile.y - asteroid.y
+      const distance = Math.sqrt(dx * dx + dy * dy)
+      return distance < projectile.radius + asteroid.radius * 0.9
+    }
+
+    const checkPlayerAsteroidCollision = (player: Player, asteroid: Asteroid) => {
       const playerCenterX = player.x + player.width / 2
       const playerCenterY = player.y + player.height / 2
       const playerRadius = Math.min(player.width, player.height) / 2.5
@@ -540,18 +651,6 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
       const distance = Math.sqrt(dx * dx + dy * dy)
 
       return distance < playerRadius + asteroid.radius * 0.8
-    }
-
-    const checkStarCollision = (player: Player, star: Star) => {
-      const playerCenterX = player.x + player.width / 2
-      const playerCenterY = player.y + player.height / 2
-      const playerRadius = Math.min(player.width, player.height) / 2
-
-      const dx = playerCenterX - star.x
-      const dy = playerCenterY - star.y
-      const distance = Math.sqrt(dx * dx + dy * dy)
-
-      return distance < playerRadius + star.radius
     }
 
     const gameLoop = () => {
@@ -571,8 +670,16 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
 
       drawBackgroundStars()
 
-      const boosting = keysRef.current.has("Space") || keysRef.current.has("ShiftLeft")
+      const boosting = keysRef.current.has("ShiftLeft") || keysRef.current.has("ShiftRight")
       player.boosting = boosting
+
+      // Shooting
+      const shooting = keysRef.current.has("Space")
+      const now = Date.now()
+      if (shooting && now - lastFireTimeRef.current > FIRE_RATE) {
+        projectilesRef.current.push(createProjectile(player))
+        lastFireTimeRef.current = now
+      }
 
       let ax = 0,
         ay = 0
@@ -635,43 +742,66 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
         }
       }
 
-      // Combo decay
-      if (comboTimerRef.current > 0) {
-        comboTimerRef.current--
-      } else if (comboRef.current > 0) {
-        comboRef.current = 0
-        setCombo(0)
-      }
-
       // Spawn asteroids
       if (Math.random() < currentLevel.asteroidRate) {
         asteroidsRef.current.push(createAsteroid())
       }
 
-      // Spawn stars
-      if (Math.random() < currentLevel.starRate) {
-        starsRef.current.push(createStar())
-      }
+      // Update projectiles
+      projectilesRef.current = projectilesRef.current.filter((projectile) => {
+        projectile.x += projectile.vx
+        projectile.y += projectile.vy
+
+        if (projectile.x > displayWidth + 20) return false
+
+        // Check collision with asteroids
+        for (let i = asteroidsRef.current.length - 1; i >= 0; i--) {
+          const asteroid = asteroidsRef.current[i]
+          if (checkProjectileAsteroidCollision(projectile, asteroid)) {
+            asteroid.health -= projectile.damage
+
+            if (asteroid.health <= 0) {
+              // Asteroid destroyed
+              explosionsRef.current.push(createExplosion(asteroid.x, asteroid.y, asteroid.radius))
+
+              // Score based on asteroid size
+              let points = 50
+              if (asteroid.maxHealth > 30) points = 150
+              else if (asteroid.maxHealth > 15) points = 100
+
+              scoreRef.current += points
+              setScore(scoreRef.current)
+              killsRef.current++
+              setKills(killsRef.current)
+
+              asteroidsRef.current.splice(i, 1)
+            }
+            return false
+          }
+        }
+
+        drawProjectile(projectile)
+        return true
+      })
 
       // Update and draw asteroids
       asteroidsRef.current = asteroidsRef.current.filter((asteroid) => {
         asteroid.x -= asteroid.speed
         asteroid.rotation += asteroid.rotationSpeed
 
-        if (!player.invincible && checkCollision(player, asteroid)) {
+        if (!player.invincible && checkPlayerAsteroidCollision(player, asteroid)) {
           livesRef.current--
           setLives(livesRef.current)
           player.invincible = true
           player.invincibleTimer = 120
-          comboRef.current = 0
-          setCombo(0)
-          setScreenShake(8) // Trigger screen shake on collision
+          explosionsRef.current.push(createExplosion(asteroid.x, asteroid.y, asteroid.radius))
 
           if (livesRef.current <= 0) {
             cancelAnimationFrame(gameLoopRef.current)
             onGameOver(scoreRef.current)
             return false
           }
+          return false
         }
 
         if (asteroid.x < -asteroid.radius * 2) return false
@@ -680,24 +810,22 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
         return true
       })
 
-      // Update and draw stars
-      starsRef.current = starsRef.current.filter((star) => {
-        star.x -= star.speed
-        star.pulse += star.pulseSpeed
+      // Update and draw explosions
+      explosionsRef.current = explosionsRef.current.filter((explosion) => {
+        explosion.radius += 3
+        explosion.alpha -= 0.04
 
-        if (checkStarCollision(player, star)) {
-          comboRef.current++
-          comboTimerRef.current = 90
-          setCombo(comboRef.current)
-          const points = 100 * Math.max(1, comboRef.current)
-          scoreRef.current += points
-          setScore(scoreRef.current)
-          return false
-        }
+        explosion.particles.forEach(p => {
+          p.x += p.vx
+          p.y += p.vy
+          p.alpha -= 0.03
+          p.vx *= 0.98
+          p.vy *= 0.98
+        })
 
-        if (star.x < -30) return false
+        if (explosion.alpha <= 0) return false
 
-        drawStar(star)
+        drawExplosion(explosion)
         return true
       })
 
@@ -707,21 +835,11 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
       distanceRef.current += 1.5 + (boosting ? 1.5 : 0)
       setDistance(distanceRef.current)
 
-      // Level completion
+      // Level completion - trigger boss fight
       if (distanceRef.current >= currentLevel.distance) {
-        if (levelRef.current < LEVELS.length - 1) {
-          levelRef.current++
-          setLevel(levelRef.current)
-          distanceRef.current = 0
-          setDistance(0)
-          setShowLevelTransition(true)
-          asteroidsRef.current = []
-          starsRef.current = []
-        } else {
-          cancelAnimationFrame(gameLoopRef.current)
-          onVictory(scoreRef.current)
-          return
-        }
+        cancelAnimationFrame(gameLoopRef.current)
+        onBossFight(levelRef.current, scoreRef.current)
+        return
       }
 
       gameLoopRef.current = requestAnimationFrame(gameLoop)
@@ -749,13 +867,13 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
       window.removeEventListener("keyup", handleKeyUp)
       cancelAnimationFrame(gameLoopRef.current)
     }
-  }, [isPaused, showLevelTransition, onGameOver, onVictory, initializeBackground])
+  }, [isPaused, showLevelTransition, onGameOver, onVictory, onBossFight, initializeBackground])
 
   const handleLevelTransitionComplete = useCallback(() => {
     setShowLevelTransition(false)
   }, [])
 
-  const currentLevel = LEVELS[level]
+  const currentLevelData = LEVELS[level]
 
   return (
     <div
@@ -769,11 +887,11 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
         lives={lives}
         fuel={fuel}
         distance={distance}
-        maxDistance={currentLevel.distance}
+        maxDistance={currentLevelData.distance}
         level={level}
-        levelName={currentLevel.name}
-        levelColor={currentLevel.color}
-        combo={combo}
+        levelName={currentLevelData.name}
+        levelColor={currentLevelData.color}
+        kills={kills}
         totalLevels={LEVELS.length}
       />
 
@@ -784,8 +902,8 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
       {showLevelTransition && (
         <LevelTransition
           levelNumber={level + 1}
-          levelName={currentLevel.name}
-          levelColor={currentLevel.color}
+          levelName={currentLevelData.name}
+          levelColor={currentLevelData.color}
           totalLevels={LEVELS.length}
           onComplete={handleLevelTransitionComplete}
         />
@@ -793,3 +911,5 @@ export function GameScreen({ onGameOver, onVictory }: GameScreenProps) {
     </div>
   )
 }
+
+export { LEVELS }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Rocket, Pizza, Zap, Star, ChevronRight, Gamepad2 } from "lucide-react"
+import { Rocket, Pizza, Zap, Star, ChevronRight, Gamepad2, Crosshair, Skull, Map } from "lucide-react"
 
 interface StartScreenProps {
   onStart: () => void
@@ -33,10 +33,13 @@ export function StartScreen({ onStart }: StartScreenProps) {
           <Pizza className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
         </div>
         <div className="absolute top-[25%] right-[15%] animate-float-delayed opacity-50">
-          <Star className="w-8 h-8 sm:w-14 sm:h-14 text-accent" />
+          <Crosshair className="w-8 h-8 sm:w-14 sm:h-14 text-cyan-400" />
         </div>
         <div className="absolute bottom-[20%] left-[20%] animate-float-reverse opacity-40">
           <Rocket className="w-8 h-8 sm:w-12 sm:h-12 text-secondary" />
+        </div>
+        <div className="absolute bottom-[30%] right-[10%] animate-float opacity-50">
+          <Skull className="w-10 h-10 sm:w-14 sm:h-14 text-red-400" />
         </div>
 
         <div className="absolute top-[10%] right-[25%] w-10 h-10 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-orange-500 to-red-600 animate-float opacity-70" />
@@ -52,7 +55,7 @@ export function StartScreen({ onStart }: StartScreenProps) {
           <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4">
             <Rocket className="w-8 h-8 sm:w-12 sm:h-12 text-primary animate-float" />
             <Pizza className="w-10 h-10 sm:w-16 sm:h-16 text-primary animate-pulse-glow rounded-full" />
-            <Star className="w-8 h-8 sm:w-12 sm:h-12 text-accent animate-float-reverse" />
+            <Crosshair className="w-8 h-8 sm:w-12 sm:h-12 text-cyan-400 animate-float-reverse" />
           </div>
 
           <h1 className="font-display text-3xl sm:text-5xl md:text-7xl font-black mb-2 sm:mb-4">
@@ -63,10 +66,10 @@ export function StartScreen({ onStart }: StartScreenProps) {
           </h2>
 
           <p className="text-sm sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-            Navigate through asteroid fields, collect stars for points, and deliver pizza across <span className="text-primary font-bold">10 challenging levels</span>!
+            Blast through asteroids, defeat <span className="text-red-400 font-bold">alien bosses</span>, and deliver pizza across <span className="text-primary font-bold">10 planets</span>!
           </p>
           <p className="text-xs sm:text-sm text-muted-foreground/80 max-w-xl mx-auto px-4 mt-2">
-            <span className="text-accent">★</span> Manage your fuel wisely • Chain star combos for bonus points • Avoid asteroids to keep your lives
+            <span className="text-cyan-400">★</span> Shoot to destroy • Battle epic bosses • Travel the galaxy map
           </p>
         </div>
 
@@ -115,8 +118,9 @@ export function StartScreen({ onStart }: StartScreenProps) {
 
             {isTouchDevice ? (
               <div className="text-left space-y-2 text-xs sm:text-base">
-                <p className="text-muted-foreground">Use the virtual joystick to move</p>
-                <p className="text-muted-foreground">Tap the BOOST button for speed</p>
+                <p className="text-muted-foreground">🕹️ Use the virtual joystick to move</p>
+                <p className="text-muted-foreground">🎯 Tap FIRE button to shoot asteroids</p>
+                <p className="text-muted-foreground">⚡ Hold BOOST button for speed</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2 sm:gap-4 text-left text-xs sm:text-base">
@@ -126,15 +130,15 @@ export function StartScreen({ onStart }: StartScreenProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <kbd className="px-2 py-1 bg-muted rounded font-mono text-[10px] sm:text-sm">SPACE</kbd>
+                  <span className="text-muted-foreground">Shoot</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <kbd className="px-2 py-1 bg-muted rounded font-mono text-[10px] sm:text-sm">SHIFT</kbd>
                   <span className="text-muted-foreground">Boost</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <kbd className="px-2 py-1 bg-muted rounded font-mono text-[10px] sm:text-sm">ESC</kbd>
                   <span className="text-muted-foreground">Pause</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <kbd className="px-2 py-1 bg-muted rounded font-mono text-[10px] sm:text-sm">Arrows</kbd>
-                  <span className="text-muted-foreground">Move</span>
                 </div>
               </div>
             )}
@@ -144,14 +148,18 @@ export function StartScreen({ onStart }: StartScreenProps) {
         {/* Mission Objectives */}
         <div className="mt-4 sm:mt-8 glass rounded-xl sm:rounded-2xl p-3 sm:p-6 max-w-2xl mx-auto">
           <h3 className="font-display text-base sm:text-xl font-bold text-accent mb-2 sm:mb-4">Mission Objectives</h3>
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="grid grid-cols-4 gap-2 sm:gap-4">
             <div className="text-center p-1 sm:p-4">
-              <Rocket className="w-6 h-6 sm:w-10 sm:h-10 mx-auto text-red-400 mb-1" />
-              <p className="text-[10px] sm:text-sm text-muted-foreground">Dodge asteroids</p>
+              <Crosshair className="w-6 h-6 sm:w-10 sm:h-10 mx-auto text-cyan-400 mb-1" />
+              <p className="text-[10px] sm:text-sm text-muted-foreground">Destroy asteroids</p>
             </div>
             <div className="text-center p-1 sm:p-4">
-              <Star className="w-6 h-6 sm:w-10 sm:h-10 mx-auto text-yellow-400 mb-1" />
-              <p className="text-[10px] sm:text-sm text-muted-foreground">Collect stars</p>
+              <Skull className="w-6 h-6 sm:w-10 sm:h-10 mx-auto text-red-400 mb-1" />
+              <p className="text-[10px] sm:text-sm text-muted-foreground">Defeat bosses</p>
+            </div>
+            <div className="text-center p-1 sm:p-4">
+              <Map className="w-6 h-6 sm:w-10 sm:h-10 mx-auto text-purple-400 mb-1" />
+              <p className="text-[10px] sm:text-sm text-muted-foreground">Travel the galaxy</p>
             </div>
             <div className="text-center p-1 sm:p-4">
               <Pizza className="w-6 h-6 sm:w-10 sm:h-10 mx-auto text-orange-400 mb-1" />
