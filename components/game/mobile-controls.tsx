@@ -15,6 +15,7 @@ export function MobileControls({ onControl }: MobileControlsProps) {
   const [showRotateHint, setShowRotateHint] = useState(false)
   const [isShooting, setIsShooting] = useState(false)
   const [isBoosting, setIsBoosting] = useState(false)
+  const [screenSize, setScreenSize] = useState<'xs' | 'sm' | 'md'>('md')
   const activeDirections = useRef<Set<string>>(new Set())
 
   useEffect(() => {
@@ -22,6 +23,19 @@ export function MobileControls({ onControl }: MobileControlsProps) {
       const isPortrait = window.innerHeight > window.innerWidth
       const isMobile = window.innerWidth <= 1024 || "ontouchstart" in window
       setShowRotateHint(isPortrait && isMobile)
+
+      // Determine screen size for responsive controls
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const minDim = Math.min(width, height)
+
+      if (minDim < 400 || height < 320) {
+        setScreenSize('xs') // Very small screens
+      } else if (minDim < 600 || height < 400) {
+        setScreenSize('sm') // Small screens
+      } else {
+        setScreenSize('md') // Medium/larger screens
+      }
     }
 
     checkOrientation()
@@ -76,7 +90,7 @@ export function MobileControls({ onControl }: MobileControlsProps) {
       const centerY = rect.top + rect.height / 2
       const touch = e.touches[0]
 
-      const maxDistance = rect.width / 2 - 20
+      const maxDistance = rect.width / 2 - 12
       let dx = touch.clientX - centerX
       let dy = touch.clientY - centerY
       const distance = Math.sqrt(dx * dx + dy * dy)
@@ -138,28 +152,76 @@ export function MobileControls({ onControl }: MobileControlsProps) {
   if (showRotateHint) {
     return (
       <div className="fixed inset-0 z-[100] bg-background/95 flex items-center justify-center">
-        <div className="text-center p-8">
-          <RotateCcw className="w-20 h-20 mx-auto mb-6 text-primary animate-spin" style={{ animationDuration: "3s" }} />
-          <h2 className="font-display text-2xl font-bold text-foreground mb-4">Rotate Your Device</h2>
-          <p className="text-muted-foreground text-lg">Please rotate to landscape mode for the best experience</p>
+        <div className="text-center p-6">
+          <RotateCcw className="w-16 h-16 mx-auto mb-4 text-primary animate-spin" style={{ animationDuration: "3s" }} />
+          <h2 className="font-display text-xl font-bold text-foreground mb-2">Rotate Your Device</h2>
+          <p className="text-muted-foreground text-sm">Please rotate to landscape mode for the best experience</p>
         </div>
       </div>
     )
   }
+
+  // Responsive sizes based on screen
+  const sizes = {
+    xs: {
+      joystick: 'w-16 h-16',
+      joystickThumb: 'w-7 h-7',
+      shoot: 'w-12 h-12',
+      shootOffset: 'right-20',
+      boost: 'w-11 h-11',
+      shootIcon: 'w-5 h-5',
+      boostIcon: 'w-4 h-4',
+      bottom: 'bottom-3',
+      leftOffset: 'left-3',
+      rightOffset: 'right-3',
+      showLabels: false,
+      border: 'border-2',
+    },
+    sm: {
+      joystick: 'w-20 h-20',
+      joystickThumb: 'w-8 h-8',
+      shoot: 'w-14 h-14',
+      shootOffset: 'right-24',
+      boost: 'w-12 h-12',
+      shootIcon: 'w-6 h-6',
+      boostIcon: 'w-5 h-5',
+      bottom: 'bottom-4',
+      leftOffset: 'left-4',
+      rightOffset: 'right-4',
+      showLabels: false,
+      border: 'border-2',
+    },
+    md: {
+      joystick: 'w-24 h-24',
+      joystickThumb: 'w-10 h-10',
+      shoot: 'w-16 h-16',
+      shootOffset: 'right-28',
+      boost: 'w-14 h-14',
+      shootIcon: 'w-7 h-7',
+      boostIcon: 'w-6 h-6',
+      bottom: 'bottom-6',
+      leftOffset: 'left-6',
+      rightOffset: 'right-6',
+      showLabels: true,
+      border: 'border-3',
+    },
+  }
+
+  const s = sizes[screenSize]
 
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       {/* Virtual Joystick - bottom left */}
       <div
         ref={joystickRef}
-        className={`pointer-events-auto absolute bottom-8 left-8 w-32 h-32 sm:w-36 sm:h-36 rounded-full glass-mobile border-2 transition-all ${isJoystickActive ? "border-primary/60 shadow-lg shadow-primary/30" : "border-primary/30"
+        className={`pointer-events-auto absolute ${s.bottom} ${s.leftOffset} ${s.joystick} rounded-full bg-black/30 ${s.border} transition-all ${isJoystickActive ? "border-primary/70 bg-black/40" : "border-white/20"
           }`}
         onTouchStart={handleJoystickStart}
         onTouchMove={handleJoystickMove}
         onTouchEnd={handleJoystickEnd}
       >
         <div
-          className={`absolute w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-primary to-orange-600 shadow-lg transition-all duration-75 ${isJoystickActive ? "scale-110 shadow-2xl shadow-primary/50" : ""
+          className={`absolute ${s.joystickThumb} rounded-full bg-gradient-to-br from-primary to-orange-500 shadow-md transition-all duration-75 ${isJoystickActive ? "scale-110" : ""
             }`}
           style={{
             left: "50%",
@@ -167,46 +229,43 @@ export function MobileControls({ onControl }: MobileControlsProps) {
             transform: `translate(calc(-50% + ${joystickPos.x}px), calc(-50% + ${joystickPos.y}px))`,
           }}
         />
-        {/* Direction indicators */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-50 pointer-events-none">
-          <div className="absolute top-2 text-foreground text-xs font-display">▲</div>
-          <div className="absolute bottom-2 text-foreground text-xs font-display">▼</div>
-          <div className="absolute left-2 text-foreground text-xs font-display">◀</div>
-          <div className="absolute right-2 text-foreground text-xs font-display">▶</div>
-        </div>
       </div>
 
       {/* Shoot button - bottom center-right */}
       <button
-        className={`pointer-events-auto absolute bottom-8 right-36 sm:right-44 w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-lg transition-all border-4 ${isShooting
-            ? "bg-gradient-to-br from-cyan-400 to-blue-600 scale-90 border-cyan-300 shadow-cyan-500/50"
-            : "bg-gradient-to-br from-cyan-500 to-blue-700 border-cyan-400/50 shadow-cyan-500/30"
+        className={`pointer-events-auto absolute ${s.bottom} ${s.shootOffset} ${s.shoot} rounded-full flex items-center justify-center transition-all ${s.border} ${isShooting
+            ? "bg-cyan-500/80 scale-90 border-cyan-300"
+            : "bg-cyan-600/50 border-cyan-400/40"
           }`}
         onTouchStart={handleShootStart}
         onTouchEnd={handleShootEnd}
       >
         <div className="text-center">
-          <Crosshair className={`w-8 h-8 sm:w-10 sm:h-10 mx-auto ${isShooting ? "text-white" : "text-cyan-100"}`} />
-          <span className={`text-[10px] sm:text-xs font-display uppercase font-bold ${isShooting ? "text-white" : "text-cyan-100/90"}`}>
-            FIRE
-          </span>
+          <Crosshair className={`${s.shootIcon} mx-auto text-white`} />
+          {s.showLabels && (
+            <span className="text-[8px] font-display uppercase font-bold text-white/80">
+              FIRE
+            </span>
+          )}
         </div>
       </button>
 
       {/* Boost button - bottom right */}
       <button
-        className={`pointer-events-auto absolute bottom-8 right-6 w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center shadow-lg transition-all border-4 ${isBoosting
-            ? "bg-gradient-to-br from-orange-400 to-red-600 scale-90 border-orange-300 shadow-orange-500/50"
-            : "bg-gradient-to-br from-primary to-orange-600 border-primary/50 shadow-primary/40"
+        className={`pointer-events-auto absolute ${s.bottom} ${s.rightOffset} ${s.boost} rounded-full flex items-center justify-center transition-all ${s.border} ${isBoosting
+            ? "bg-orange-500/80 scale-90 border-orange-300"
+            : "bg-orange-600/50 border-orange-400/40"
           }`}
         onTouchStart={handleBoostStart}
         onTouchEnd={handleBoostEnd}
       >
         <div className="text-center">
-          <Zap className={`w-6 h-6 sm:w-8 sm:h-8 mx-auto ${isBoosting ? "text-white" : "text-primary-foreground"}`} />
-          <span className={`text-[10px] sm:text-xs font-display uppercase font-bold ${isBoosting ? "text-white" : "text-primary-foreground/90"}`}>
-            BOOST
-          </span>
+          <Zap className={`${s.boostIcon} mx-auto text-white`} />
+          {s.showLabels && (
+            <span className="text-[8px] font-display uppercase font-bold text-white/80">
+              BOOST
+            </span>
+          )}
         </div>
       </button>
     </div>
