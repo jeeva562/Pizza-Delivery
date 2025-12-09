@@ -53,22 +53,22 @@ export function StartScreen({ onStart }: StartScreenProps) {
         {/* Logo/Title */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-            <Rocket className="w-8 h-8 sm:w-12 sm:h-12 text-primary animate-float" />
-            <Pizza className="w-10 h-10 sm:w-16 sm:h-16 text-primary animate-pulse-glow rounded-full" />
-            <Crosshair className="w-8 h-8 sm:w-12 sm:h-12 text-cyan-400 animate-float-reverse" />
+            <Rocket className="w-10 h-10 sm:w-12 sm:h-12 text-primary animate-float" />
+            <Pizza className="w-14 h-14 sm:w-16 sm:h-16 text-primary animate-pulse-glow rounded-full" />
+            <Crosshair className="w-10 h-10 sm:w-12 sm:h-12 text-cyan-400 animate-float-reverse" />
           </div>
 
-          <h1 className="font-display text-3xl sm:text-5xl md:text-7xl font-black mb-2 sm:mb-4">
+          <h1 className="font-display text-5xl sm:text-5xl md:text-7xl font-black mb-3 sm:mb-4 px-2">
             <span className="text-gradient-fire">INTERGALACTIC</span>
           </h1>
-          <h2 className="font-display text-2xl sm:text-4xl md:text-6xl font-bold text-gradient-cosmic mb-4 sm:mb-6">
+          <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-bold text-gradient-cosmic mb-4 sm:mb-6 px-2">
             PIZZA DELIVERY
           </h2>
 
-          <p className="text-sm sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4 leading-relaxed">
             Blast through asteroids, defeat <span className="text-red-400 font-bold">alien bosses</span>, and deliver pizza across <span className="text-primary font-bold">10 planets</span>!
           </p>
-          <p className="text-xs sm:text-sm text-muted-foreground/80 max-w-xl mx-auto px-4 mt-2">
+          <p className="text-sm sm:text-sm text-muted-foreground/80 max-w-xl mx-auto px-4 mt-3">
             <span className="text-cyan-400">★</span> Shoot to destroy • Battle epic bosses • Travel the galaxy map
           </p>
         </div>
@@ -77,12 +77,12 @@ export function StartScreen({ onStart }: StartScreenProps) {
         <div className="mb-6 sm:mb-8">
           <button
             onClick={onStart}
-            className="group relative px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-primary via-orange-500 to-primary text-primary-foreground font-display font-bold text-lg sm:text-2xl rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-110 active:scale-95 animate-pulse-glow"
+            className="group relative px-10 sm:px-12 py-5 sm:py-6 bg-gradient-to-r from-primary via-orange-500 to-primary text-primary-foreground font-display font-bold text-xl sm:text-2xl rounded-2xl sm:rounded-2xl transition-all duration-300 hover:scale-110 active:scale-95 animate-pulse-glow shadow-2xl"
           >
-            <span className="flex items-center gap-2 sm:gap-3">
-              <Gamepad2 className="w-6 h-6 sm:w-8 sm:h-8" />
+            <span className="flex items-center gap-3 sm:gap-3">
+              <Gamepad2 className="w-7 h-7 sm:w-8 sm:h-8" />
               START MISSION
-              <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8 group-hover:translate-x-2 transition-transform" />
+              <ChevronRight className="w-7 h-7 sm:w-8 sm:h-8 group-hover:translate-x-2 transition-transform" />
             </span>
           </button>
 

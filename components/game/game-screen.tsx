@@ -560,21 +560,24 @@ export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 
       const displayWidth = canvasSizeRef.current.width
       const displayHeight = canvasSizeRef.current.height
       const currentLevel = LEVELS[levelRef.current]
+
+      // Scale asteroids based on screen size - smaller on mobile
+      const screenScale = Math.min(displayWidth, displayHeight) / 900
       const sizeType = Math.random()
       let radius: number
       let health: number
 
       if (sizeType < 0.4) {
         // Small asteroid
-        radius = 15 + Math.random() * 10
+        radius = (15 + Math.random() * 10) * screenScale
         health = 15
       } else if (sizeType < 0.75) {
         // Medium asteroid
-        radius = 25 + Math.random() * 15
+        radius = (25 + Math.random() * 15) * screenScale
         health = 30
       } else {
         // Large asteroid
-        radius = 40 + Math.random() * 20 + levelRef.current * 2
+        radius = (40 + Math.random() * 20 + levelRef.current * 2) * screenScale
         health = 45 + levelRef.current * 5
       }
 
