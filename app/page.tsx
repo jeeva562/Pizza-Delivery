@@ -96,7 +96,14 @@ export default function Page() {
   }, [])
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-background">
+    <main
+      className="relative w-full overflow-hidden bg-background"
+      style={{
+        minHeight: '100dvh',
+        height: '100dvh',
+        touchAction: 'manipulation',
+      }}
+    >
       <ParallaxBackground />
 
       {gameState === "start" && <StartScreen onStart={handleStartGame} />}

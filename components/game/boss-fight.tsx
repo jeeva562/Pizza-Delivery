@@ -252,8 +252,10 @@ export function BossFight({ level, onBossDefeated, onPlayerDied, currentScore }:
 
         const resizeCanvas = () => {
             const dpr = Math.min(window.devicePixelRatio || 1, 2)
-            const width = window.innerWidth
-            const height = window.innerHeight
+            // Use visualViewport for more accurate mobile dimensions
+            const vv = window.visualViewport
+            const width = vv ? vv.width : window.innerWidth
+            const height = vv ? vv.height : window.innerHeight
 
             canvas.width = width * dpr
             canvas.height = height * dpr
@@ -284,6 +286,10 @@ export function BossFight({ level, onBossDefeated, onPlayerDied, currentScore }:
 
         resizeCanvas()
         window.addEventListener("resize", resizeCanvas)
+        // Also listen to visualViewport resize for mobile browser UI changes
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", resizeCanvas)
+        }
 
         const drawBackgroundStars = () => {
             backgroundStarsRef.current.forEach((star) => {
@@ -1121,6 +1127,9 @@ export function BossFight({ level, onBossDefeated, onPlayerDied, currentScore }:
 
         return () => {
             window.removeEventListener("resize", resizeCanvas)
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener("resize", resizeCanvas)
+            }
             window.removeEventListener("keydown", handleKeyDown)
             window.removeEventListener("keyup", handleKeyUp)
             if (isTouchDevice) {
@@ -1132,8 +1141,25 @@ export function BossFight({ level, onBossDefeated, onPlayerDied, currentScore }:
     }, [level, bossData, showVictory, onBossDefeated, onPlayerDied, isTouchDevice])
 
     return (
-        <div className="fixed inset-0 z-50 bg-black">
-            <canvas ref={canvasRef} className="block w-full h-full" style={{ touchAction: "none" }} />
+        <div
+            className="fixed inset-0 z-50 bg-black overflow-hidden"
+            style={{
+                width: '100vw',
+                height: '100dvh',
+                touchAction: 'none',
+                overscrollBehavior: 'none',
+            }}
+        >
+            <canvas
+                ref={canvasRef}
+                className="block"
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    touchAction: 'none',
+                    userSelect: 'none',
+                }}
+            />
 
             {/* Boss info HUD */}
             <div className="absolute top-0 left-0 right-0 p-4 pointer-events-none">

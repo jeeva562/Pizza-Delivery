@@ -268,8 +268,10 @@ export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 
 
     const resizeCanvas = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      const width = window.innerWidth
-      const height = window.innerHeight
+      // Use visualViewport for more accurate mobile dimensions when available
+      const vv = window.visualViewport
+      const width = vv ? vv.width : window.innerWidth
+      const height = vv ? vv.height : window.innerHeight
 
       canvas.width = width * dpr
       canvas.height = height * dpr
@@ -286,6 +288,10 @@ export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 
 
     resizeCanvas()
     window.addEventListener("resize", resizeCanvas)
+    // Also listen to visualViewport resize for mobile browser UI changes
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", resizeCanvas)
+    }
 
     const drawPlayer = (player: Player) => {
       ctx.save()
@@ -866,6 +872,9 @@ export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 
 
     return () => {
       window.removeEventListener("resize", resizeCanvas)
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", resizeCanvas)
+      }
       window.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("keyup", handleKeyUp)
       cancelAnimationFrame(gameLoopRef.current)
@@ -881,9 +890,25 @@ export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 w-screen h-screen overflow-hidden bg-background"
+      className="fixed inset-0 overflow-hidden bg-background"
+      style={{
+        width: '100vw',
+        height: '100dvh',
+        touchAction: 'none',
+        overscrollBehavior: 'none',
+      }}
     >
-      <canvas ref={canvasRef} className="block w-full h-full" style={{ touchAction: "none" }} />
+      <canvas
+        ref={canvasRef}
+        className="block"
+        style={{
+          width: '100%',
+          height: '100%',
+          touchAction: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}
+      />
 
       <GameHUD
         score={score}
