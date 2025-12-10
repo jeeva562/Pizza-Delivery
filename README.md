@@ -39,9 +39,7 @@ npm run build
 
 # Start production server
 npm start
-```
-
-Visit `http://localhost:3000` to play!
+```!
 
 ## Tech Stack
 
