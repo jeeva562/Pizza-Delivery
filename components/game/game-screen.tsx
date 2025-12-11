@@ -4,12 +4,33 @@ import { GameHUD } from "./game-hud"
 import { MobileControls } from "./mobile-controls"
 import { PauseMenu } from "./pause-menu"
 import { LevelTransition } from "./level-transition"
+import {
+  RocketColor,
+  RocketShape,
+  BeamColor,
+  FiringModeConfig,
+  ROCKET_COLORS,
+  ROCKET_SHAPES,
+  BEAM_COLORS,
+  FIRING_MODES,
+} from "@/lib/upgrade-types"
+
+interface AppliedStats {
+  rocketSpeedMultiplier: number
+  beamSpeedMultiplier: number
+  rocketColor: RocketColor
+  beamColor: BeamColor
+  firingModeConfig: FiringModeConfig
+  rocketShape: RocketShape
+}
 
 interface GameScreenProps {
   onGameOver: (score: number) => void
   onVictory: (score: number) => void
   onBossFight: (level: number, score: number) => void
   currentLevel?: number
+  appliedStats?: AppliedStats
+  onPointsEarned?: (points: number) => void
 }
 
 interface Player {
@@ -168,7 +189,16 @@ const PROJECTILE_SPEED = 14
 const FIRE_RATE = 120 // ms between shots
 const PROJECTILE_DAMAGE = 15
 
-export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 0 }: GameScreenProps) {
+export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 0, appliedStats, onPointsEarned }: GameScreenProps) {
+  // Default stats if none provided
+  const stats = appliedStats || {
+    rocketSpeedMultiplier: 1,
+    beamSpeedMultiplier: 1,
+    rocketColor: ROCKET_COLORS[0],
+    beamColor: BEAM_COLORS[0],
+    firingModeConfig: FIRING_MODES[0],
+    rocketShape: ROCKET_SHAPES[0],
+  }
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const gameLoopRef = useRef<number>(0)
@@ -605,17 +635,41 @@ export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 
       }
     }
 
-    const createProjectile = (player: Player): Projectile => {
+    const createProjectile = (player: Player, angleOffset: number = 0, yOffset: number = 0): Projectile => {
       const currentLevel = LEVELS[levelRef.current]
+      const baseSpeed = PROJECTILE_SPEED * stats.beamSpeedMultiplier
+      const angle = angleOffset * (Math.PI / 180) // Convert to radians
+      const beamColor = stats.beamColor.id === 'default' ? currentLevel.color : stats.beamColor.primary
+
       return {
         x: player.x + player.width,
-        y: player.y + player.height / 2,
-        vx: PROJECTILE_SPEED,
-        vy: player.vy * 0.2,
+        y: player.y + player.height / 2 + yOffset,
+        vx: baseSpeed * Math.cos(angle),
+        vy: player.vy * 0.2 + baseSpeed * Math.sin(angle),
         radius: 5,
-        damage: PROJECTILE_DAMAGE,
-        color: currentLevel.color,
+        damage: Math.round(PROJECTILE_DAMAGE * stats.firingModeConfig.damageMultiplier),
+        color: beamColor,
       }
+    }
+
+    const createProjectiles = (player: Player): Projectile[] => {
+      const projectiles: Projectile[] = []
+      const mode = stats.firingModeConfig
+
+      if (mode.id === 'single') {
+        projectiles.push(createProjectile(player, 0, 0))
+      } else if (mode.id === 'double') {
+        projectiles.push(createProjectile(player, 0, -6))
+        projectiles.push(createProjectile(player, 0, 6))
+      } else if (mode.id === 'triple') {
+        projectiles.push(createProjectile(player, 0, 0))
+        projectiles.push(createProjectile(player, mode.spreadAngle, 0))
+        projectiles.push(createProjectile(player, -mode.spreadAngle, 0))
+      } else if (mode.id === 'machinegun') {
+        projectiles.push(createProjectile(player, 0, 0))
+      }
+
+      return projectiles
     }
 
     const createExplosion = (x: number, y: number, size: number): Explosion => {
@@ -682,11 +736,13 @@ export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 
       const boosting = keysRef.current.has("ShiftLeft") || keysRef.current.has("ShiftRight")
       player.boosting = boosting
 
-      // Shooting
+      // Shooting - apply firing mode fire rate
       const shooting = keysRef.current.has("Space")
       const now = Date.now()
-      if (shooting && now - lastFireTimeRef.current > FIRE_RATE) {
-        projectilesRef.current.push(createProjectile(player))
+      const effectiveFireRate = Math.round(FIRE_RATE / stats.firingModeConfig.fireRateMultiplier)
+      if (shooting && now - lastFireTimeRef.current > effectiveFireRate) {
+        const newProjectiles = createProjectiles(player)
+        projectilesRef.current.push(...newProjectiles)
         lastFireTimeRef.current = now
       }
 
@@ -698,8 +754,10 @@ export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 
       if (keysRef.current.has("ArrowLeft") || keysRef.current.has("KeyA")) ax -= ACCELERATION
       if (keysRef.current.has("ArrowRight") || keysRef.current.has("KeyD")) ax += ACCELERATION
 
-      const speedMultiplier = boosting ? BOOST_MULTIPLIER : 1
-      const accelMultiplier = boosting ? BOOST_ACCELERATION : 1
+      // Apply rocket speed upgrade to movement
+      const rocketSpeedBonus = stats.rocketSpeedMultiplier
+      const speedMultiplier = (boosting ? BOOST_MULTIPLIER : 1) * rocketSpeedBonus
+      const accelMultiplier = (boosting ? BOOST_ACCELERATION : 1) * rocketSpeedBonus
       player.vx += ax * speedMultiplier * accelMultiplier
       player.vy += ay * speedMultiplier * accelMultiplier
 
@@ -782,6 +840,11 @@ export function GameScreen({ onGameOver, onVictory, onBossFight, currentLevel = 
               setScore(scoreRef.current)
               killsRef.current++
               setKills(killsRef.current)
+
+              // Notify parent about points earned for upgrades
+              if (onPointsEarned) {
+                onPointsEarned(points)
+              }
 
               asteroidsRef.current.splice(i, 1)
             }

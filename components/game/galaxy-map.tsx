@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useRef, useState, useCallback } from "react"
-import { Rocket, Star, Lock, Trophy, ChevronRight } from "lucide-react"
+import { Rocket, Star, Lock, Trophy, ChevronRight, Sparkles } from "lucide-react"
 
 interface GalaxyMapProps {
     currentLevel: number
@@ -8,6 +8,8 @@ interface GalaxyMapProps {
     onLevelSelect: (level: number) => void
     onContinue: () => void
     totalScore: number
+    onOpenUpgrades?: () => void
+    availablePoints?: number
 }
 
 interface Planet {
@@ -67,7 +69,7 @@ const PLANETS: Planet[] = [
     { x: 0.96, y: 0.5, radius: 45, color: "#32cd32", name: "Space Station", glowColor: "#90ee90", texture: "station" },
 ]
 
-export function GalaxyMap({ currentLevel, completedLevels, onLevelSelect, onContinue, totalScore }: GalaxyMapProps) {
+export function GalaxyMap({ currentLevel, completedLevels, onLevelSelect, onContinue, totalScore, onOpenUpgrades, availablePoints = 0 }: GalaxyMapProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const animationRef = useRef<number>(0)
     const [selectedPlanet, setSelectedPlanet] = useState<number | null>(null)
@@ -720,11 +722,28 @@ export function GalaxyMap({ currentLevel, completedLevels, onLevelSelect, onCont
                             GALAXY MAP
                         </h1>
                     </div>
-                    <div className="glass-strong rounded-xl px-4 py-2 sm:px-6 sm:py-3 flex items-center gap-2 sm:gap-3 border border-yellow-500/30">
-                        <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
-                        <span className="font-display text-sm sm:text-lg text-yellow-400">
-                            {totalScore.toLocaleString()}
-                        </span>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        {onOpenUpgrades && (
+                            <button
+                                onClick={onOpenUpgrades}
+                                className="pointer-events-auto glass-strong rounded-xl px-4 py-2 sm:px-5 sm:py-3 flex items-center gap-2 border border-purple-500/30 hover:border-purple-400/50 transition-all hover:scale-105 active:scale-95"
+                            >
+                                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
+                                <span className="font-display text-sm sm:text-base text-purple-400 hidden sm:inline">UPGRADES</span>
+                                {availablePoints > 0 && (
+                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-yellow-400/20 rounded-full text-yellow-300 text-xs">
+                                        <Star className="w-3 h-3 fill-yellow-300" />
+                                        {availablePoints > 9999 ? `${Math.floor(availablePoints / 1000)}k` : availablePoints.toLocaleString()}
+                                    </span>
+                                )}
+                            </button>
+                        )}
+                        <div className="glass-strong rounded-xl px-4 py-2 sm:px-6 sm:py-3 flex items-center gap-2 sm:gap-3 border border-yellow-500/30">
+                            <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
+                            <span className="font-display text-sm sm:text-lg text-yellow-400">
+                                {totalScore.toLocaleString()}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

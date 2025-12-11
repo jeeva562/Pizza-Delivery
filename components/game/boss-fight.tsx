@@ -1,12 +1,33 @@
 "use client"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { Skull, Trophy } from "lucide-react"
+import {
+    RocketColor,
+    RocketShape,
+    BeamColor,
+    FiringModeConfig,
+    ROCKET_COLORS,
+    ROCKET_SHAPES,
+    BEAM_COLORS,
+    FIRING_MODES,
+} from "@/lib/upgrade-types"
+
+interface AppliedStats {
+    rocketSpeedMultiplier: number
+    beamSpeedMultiplier: number
+    rocketColor: RocketColor
+    beamColor: BeamColor
+    firingModeConfig: FiringModeConfig
+    rocketShape: RocketShape
+}
 
 interface BossFightProps {
     level: number
     onBossDefeated: (score: number) => void
     onPlayerDied: (score: number) => void
     currentScore: number
+    appliedStats?: AppliedStats
+    onPointsEarned?: (points: number) => void
 }
 
 interface Player {
@@ -182,7 +203,16 @@ const PLAYER_FIRE_RATE = 120
 const PLAYER_PROJECTILE_SPEED = 14
 const BASE_PLAYER_DAMAGE = 8 // Reduced base damage for longer fights
 
-export function BossFight({ level, onBossDefeated, onPlayerDied, currentScore }: BossFightProps) {
+export function BossFight({ level, onBossDefeated, onPlayerDied, currentScore, appliedStats, onPointsEarned }: BossFightProps) {
+    // Default stats if none provided
+    const stats = appliedStats || {
+        rocketSpeedMultiplier: 1,
+        beamSpeedMultiplier: 1,
+        rocketColor: ROCKET_COLORS[0],
+        beamColor: BEAM_COLORS[0],
+        firingModeConfig: FIRING_MODES[0],
+        rocketShape: ROCKET_SHAPES[0],
+    }
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const gameLoopRef = useRef<number>(0)
     const keysRef = useRef<Set<string>>(new Set())

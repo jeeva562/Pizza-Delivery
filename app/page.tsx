@@ -4,6 +4,8 @@ import { useState, useCallback } from "react"
 import dynamic from "next/dynamic"
 import { StartScreen } from "@/components/game/start-screen"
 import { ParallaxBackground } from "@/components/game/parallax-background"
+import { UpgradeStore } from "@/components/game/upgrade-store"
+import { useUpgrades } from "@/hooks/use-upgrades"
 import { Rocket, Pizza, RotateCcw, Home, Trophy, Star } from "lucide-react"
 
 // Lazy load heavy game components to reduce initial bundle
@@ -24,6 +26,7 @@ export type GameState =
   | "galaxy-map"
   | "gameover"
   | "victory"
+  | "upgrade-store"
 
 export default function Page() {
   const [gameState, setGameState] = useState<GameState>("start")
@@ -31,6 +34,10 @@ export default function Page() {
   const [totalScore, setTotalScore] = useState(0)
   const [completedLevels, setCompletedLevels] = useState<number[]>([])
   const [bossLevel, setBossLevel] = useState(0)
+  const [previousState, setPreviousState] = useState<GameState>("start")
+
+  // Upgrade system
+  const upgrades = useUpgrades()
 
   const handleStartGame = useCallback(() => {
     setGameState("playing")
@@ -95,6 +102,20 @@ export default function Page() {
     setGameState("playing")
   }, [])
 
+  const handleOpenUpgradeStore = useCallback((fromState: GameState) => {
+    setPreviousState(fromState)
+    setGameState("upgrade-store")
+  }, [])
+
+  const handleCloseUpgradeStore = useCallback(() => {
+    setGameState(previousState)
+  }, [previousState])
+
+  // Add earned points to upgrade system
+  const handleAddPoints = useCallback((points: number) => {
+    upgrades.addPoints(points)
+  }, [upgrades])
+
   return (
     <main
       className="relative w-full overflow-hidden bg-background"
@@ -106,7 +127,13 @@ export default function Page() {
     >
       <ParallaxBackground />
 
-      {gameState === "start" && <StartScreen onStart={handleStartGame} />}
+      {gameState === "start" && (
+        <StartScreen
+          onStart={handleStartGame}
+          onOpenUpgrades={() => handleOpenUpgradeStore("start")}
+          availablePoints={upgrades.upgradeState.availablePoints}
+        />
+      )}
 
       {gameState === "playing" && (
         <GameScreen
@@ -114,6 +141,8 @@ export default function Page() {
           onVictory={handleVictory}
           onBossFight={handleBossFight}
           currentLevel={currentLevel}
+          appliedStats={upgrades.appliedStats}
+          onPointsEarned={handleAddPoints}
         />
       )}
 
@@ -123,6 +152,8 @@ export default function Page() {
           currentScore={totalScore}
           onBossDefeated={handleBossDefeated}
           onPlayerDied={handlePlayerDied}
+          appliedStats={upgrades.appliedStats}
+          onPointsEarned={handleAddPoints}
         />
       )}
 
@@ -133,6 +164,15 @@ export default function Page() {
           totalScore={totalScore}
           onContinue={handleGalaxyMapContinue}
           onLevelSelect={handleGalaxyMapLevelSelect}
+          onOpenUpgrades={() => handleOpenUpgradeStore("galaxy-map")}
+          availablePoints={upgrades.upgradeState.availablePoints}
+        />
+      )}
+
+      {gameState === "upgrade-store" && (
+        <UpgradeStore
+          upgrades={upgrades}
+          onClose={handleCloseUpgradeStore}
         />
       )}
 

@@ -17,6 +17,21 @@ Navigate through space, dodge asteroids, defeat epic bosses, and deliver pizza a
 - 🎨 **Modern UI**: Glassmorphism effects and smooth animations
 - 📱 **Mobile Optimized**: Full-screen support with dynamic viewport handling
 - 🗺️ **Galaxy Map**: Visual progression through the solar system
+- ⬆️ **Upgrade System**: Spend earned points to enhance your rocket and weapons
+
+## Upgrade System
+
+Earn points by destroying asteroids and spend them in the Upgrade Shop:
+
+### Rocket Upgrades
+- **Speed**: 3 tiers (up to +50% movement speed)
+- **Color**: 6 color schemes (Flame Red, Electric Blue, Cosmic Purple, etc.)
+- **Shape**: 4 variants (Classic, Sleek Fighter, Heavy Cruiser, Stealth Viper)
+
+### Weapon Upgrades
+- **Beam Speed**: 3 tiers (up to +70% projectile speed)
+- **Beam Color**: 6 colors (Red Plasma, Green Energy, Purple Void, etc.)
+- **Firing Modes**: Single, Double Shot, Triple Spread, Machine Gun
 
 ## Getting Started
 
@@ -68,15 +83,22 @@ npm start
 - Shoot or avoid asteroids to preserve your lives
 - Complete the required distance to reach the boss
 - Defeat the boss to progress to the next level
+- Earn points and upgrade your rocket in the Upgrade Shop
 - Reach the Space Station to win!
 
 ## Recent Updates
 
+### v1.3.0 (December 2024)
+- **Upgrade System**: New points-based upgrade shop with rocket and weapon upgrades
+- **Rocket Customization**: Speed tiers, color schemes, and shape variants
+- **Weapon Upgrades**: Beam speed, colors, and firing modes (double, triple, machine gun)
+- **Persistent Progress**: Upgrades saved to localStorage between sessions
+- **UI Improvements**: Upgrade shop accessible from start screen and galaxy map
+
 ### v1.2.0 (December 2024)
-- **Mobile Fullscreen Fix**: Game now properly fills the entire mobile screen using `100dvh` (dynamic viewport height)
+- **Mobile Fullscreen Fix**: Game now properly fills the entire mobile screen using `100dvh`
 - **Visual Viewport API**: Canvas auto-resizes when mobile browser UI appears/disappears
-- **Touch Prevention**: Added `overscroll-behavior` and `touch-action` to prevent accidental scrolling during gameplay
-- **Boss Fight Improvements**: Same fullscreen fixes applied to boss battles
+- **Touch Prevention**: Added `overscroll-behavior` and `touch-action` to prevent accidental scrolling
 
 ### v1.1.0
 - Added shooting mechanics with destroyable asteroids
@@ -99,9 +121,14 @@ Pizza Delivery/
 │       ├── game-hud.tsx    # Heads-up display
 │       ├── mobile-controls.tsx
 │       ├── galaxy-map.tsx  # Level selection map
+│       ├── upgrade-store.tsx # Upgrade shop UI
 │       ├── pause-menu.tsx
 │       ├── level-transition.tsx
 │       └── start-screen.tsx
+├── hooks/
+│   └── use-upgrades.ts     # Upgrade state management
+├── lib/
+│   └── upgrade-types.ts    # Upgrade definitions
 └── public/                 # Static assets
 ```
 
